@@ -60,7 +60,7 @@ export default function LoginPage() {
     try {
       await login(formData);
       toast.success('Login successful!');
-      router.push('/dashboard');
+      router.push('/');
     } catch (error: any) {
       const errorMessage = error?.message || 'Login failed. Please try again.';
       toast.error(errorMessage);
