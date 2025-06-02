@@ -14,7 +14,7 @@ import { Separator } from '@/components/ui/separator';
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
-    email: '',
+    emailOrUsername: '',
     password: '',
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -35,10 +35,10 @@ export default function LoginPage() {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.email) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Invalid email format';
+    if (!formData.emailOrUsername) {
+      newErrors.emailOrUsername = 'Email or Username is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.emailOrUsername)) {
+      newErrors.emailOrUsername = 'Invalid email or username format';
     }
 
     if (!formData.password) {
@@ -62,7 +62,7 @@ export default function LoginPage() {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       console.log('Login attempt:', {
-        email: formData.email,
+        emailOrUsername: formData.emailOrUsername,
         password: formData.password,
       });
     } catch (error) {
@@ -151,21 +151,23 @@ export default function LoginPage() {
               )}
 
               <div className='space-y-2'>
-                <Label htmlFor='email'>Email</Label>
+                <Label htmlFor='email'>Email or Username</Label>
                 <div className='relative'>
                   <Mail className='text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform' />
                   <Input
-                    id='email'
-                    name='email'
-                    type='email'
-                    placeholder='your.email@example.com'
-                    value={formData.email}
+                    id='emailOrUsername'
+                    name='emailOrUsername'
+                    type='text'
+                    placeholder='email@example.com or username'
+                    value={formData.emailOrUsername}
                     onChange={handleInputChange}
-                    className={`pl-10 ${errors.email ? 'border-red-500' : ''}`}
+                    className={`pl-10 ${errors.emailOrUsername ? 'border-red-500' : ''}`}
                     disabled={isLoading}
                   />
                 </div>
-                {errors.email && <p className='text-sm text-red-600'>{errors.email}</p>}
+                {errors.emailOrUsername && (
+                  <p className='text-sm text-red-600'>{errors.emailOrUsername}</p>
+                )}
               </div>
 
               <div className='space-y-2'>
