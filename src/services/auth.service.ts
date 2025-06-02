@@ -109,6 +109,13 @@ const authService = {
     });
     return response.data;
   },
+
+  checkAuth: async (): Promise<{ isValid: boolean; message: string }> => {
+    const response = await apiInstance.post<{ isValid: boolean; message: string }>(
+      '/auth/check-auth',
+    );
+    return response.data;
+  },
 };
 
 export default authService;
