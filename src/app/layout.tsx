@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
 
+import { AlertCircle } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Info } from 'lucide-react';
 import { Inter } from 'next/font/google';
+import { Toaster } from 'sonner';
 
 import '@/styles/globals.css';
 
@@ -18,7 +21,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='en'>
-      <body className={`antialiased ${inter.className}`}>{children}</body>
+      <body className={`antialiased ${inter.className}`}>
+        {children}
+        <Toaster richColors closeButton expand={true} position='top-right' />
+      </body>
     </html>
   );
 }
