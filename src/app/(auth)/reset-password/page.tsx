@@ -3,6 +3,7 @@
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -10,40 +11,46 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
+import { useAuth } from '@/hooks/useAuth';
+
 export default function ResetPasswordPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
+  const { resetPassword, isLoading: authLoading, error: authError } = useAuth();
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError('');
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      setIsLoading(false);
+      toast.error('Passwords do not match');
+      return;
+    }
+
+    if (password.length < 8) {
+      toast.error('Password must be at least 8 characters long');
+      return;
+    }
+
+    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
+      toast.error('Password must contain at least 1 uppercase, 1 lowercase letter and 1 number');
       return;
     }
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      console.log('Reset password token: ', token);
-      console.log('Reset password password: ', password);
-
+      await resetPassword({ token: token!, password });
       setSuccess(true);
-    } catch (err) {
-      console.error('Error resetting password: ', err);
-      setError('Failed to reset password. Please try again.');
-    } finally {
-      setIsLoading(false);
+      toast.success('Password has been reset successfully');
+      setTimeout(() => {
+        router.push('/login');
+      }, 2000);
+    } catch (err: any) {
+      const errorMessage = err?.message || 'Failed to reset password. Please try again.';
+      toast.error(errorMessage);
     }
   };
 
@@ -88,6 +95,7 @@ export default function ResetPasswordPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   minLength={8}
+                  disabled={authLoading}
                 />
               </div>
               <div className='space-y-2'>
@@ -99,16 +107,11 @@ export default function ResetPasswordPage() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                   minLength={8}
+                  disabled={authLoading}
                 />
               </div>
-              {error && (
-                <Alert variant='destructive'>
-                  <AlertCircle className='h-4 w-4' />
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-              <Button type='submit' className='w-full' disabled={isLoading}>
-                {isLoading ? 'Resetting...' : 'Reset Password'}
+              <Button type='submit' className='w-full' disabled={authLoading}>
+                {authLoading ? 'Resetting...' : 'Reset Password'}
               </Button>
             </form>
           )}

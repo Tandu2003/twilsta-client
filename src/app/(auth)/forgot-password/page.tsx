@@ -1,8 +1,9 @@
 'use client';
 
-import { AlertCircle, CheckCircle2 } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -17,28 +18,23 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
+import { useAuth } from '@/hooks/useAuth';
+
 export default function ForgotPasswordPage() {
+  const { forgotPassword, isLoading: authLoading, error: authError } = useAuth();
   const [email, setEmail] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError('');
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      console.log('Forgot password email: ', email);
-
+      await forgotPassword({ email });
       setSuccess(true);
-    } catch (err) {
-      console.error('Error sending reset password email: ', err);
-      setError('Failed to send reset password email. Please try again.');
-    } finally {
-      setIsLoading(false);
+      toast.success('Password reset instructions have been sent to your email.');
+    } catch (err: any) {
+      const errorMessage = err?.message || 'Failed to send reset password email. Please try again.';
+      toast.error(errorMessage);
     }
   };
 
@@ -70,16 +66,11 @@ export default function ForgotPasswordPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  disabled={authLoading}
                 />
               </div>
-              {error && (
-                <Alert variant='destructive'>
-                  <AlertCircle className='h-4 w-4' />
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-              <Button type='submit' className='w-full' disabled={isLoading}>
-                {isLoading ? 'Sending...' : 'Send Reset Link'}
+              <Button type='submit' className='w-full' disabled={authLoading}>
+                {authLoading ? 'Sending...' : 'Send Reset Link'}
               </Button>
             </form>
           )}
@@ -87,7 +78,7 @@ export default function ForgotPasswordPage() {
         <CardFooter className='flex flex-col space-y-4'>
           <div className='text-center text-sm'>
             Remember your password?{' '}
-            <Link href='/login' className='text-primary font-medium hover:underline'>
+            <Link href='/login' className='text-blue-600 hover:text-blue-800 hover:underline'>
               Sign in
             </Link>
           </div>

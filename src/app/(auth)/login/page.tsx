@@ -12,13 +12,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 
+import { useAuth } from '@/hooks/useAuth';
+
 export default function LoginPage() {
+  const router = useRouter();
+  const { login, isLoading: authLoading, error: authError } = useAuth();
   const [formData, setFormData] = useState({
     emailOrUsername: '',
     password: '',
   });
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -37,8 +40,6 @@ export default function LoginPage() {
 
     if (!formData.emailOrUsername) {
       newErrors.emailOrUsername = 'Email or Username is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.emailOrUsername)) {
-      newErrors.emailOrUsername = 'Invalid email or username format';
     }
 
     if (!formData.password) {
@@ -56,20 +57,13 @@ export default function LoginPage() {
 
     if (!validateForm()) return;
 
-    setIsLoading(true);
-
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      console.log('Login attempt:', {
-        emailOrUsername: formData.emailOrUsername,
-        password: formData.password,
-      });
-    } catch (error) {
-      console.error('Login error:', error);
-      setErrors({ general: 'Login failed. Please try again.' });
-    } finally {
-      setIsLoading(false);
+      await login(formData);
+      toast.success('Login successful!');
+      router.push('/dashboard');
+    } catch (error: any) {
+      const errorMessage = error?.message || 'Login failed. Please try again.';
+      toast.error(errorMessage);
     }
   };
 
@@ -97,7 +91,7 @@ export default function LoginPage() {
               <Button
                 variant='outline'
                 onClick={handleGoogleLogin}
-                disabled={isLoading}
+                disabled={authLoading}
                 className='w-full cursor-pointer'
               >
                 <svg className='mr-2 h-4 w-4' viewBox='0 0 24 24'>
@@ -123,7 +117,7 @@ export default function LoginPage() {
               <Button
                 variant='outline'
                 onClick={handleFacebookLogin}
-                disabled={isLoading}
+                disabled={authLoading}
                 className='w-full cursor-pointer'
               >
                 <svg className='mr-2 h-4 w-4' fill='currentColor' viewBox='0 0 24 24'>
@@ -144,12 +138,6 @@ export default function LoginPage() {
 
             {/* Login Form */}
             <form onSubmit={handleSubmit} className='space-y-4'>
-              {errors.general && (
-                <div className='rounded-md bg-red-50 p-3 text-sm text-red-600'>
-                  {errors.general}
-                </div>
-              )}
-
               <div className='space-y-2'>
                 <Label htmlFor='email'>Email or Username</Label>
                 <div className='relative'>
@@ -162,7 +150,7 @@ export default function LoginPage() {
                     value={formData.emailOrUsername}
                     onChange={handleInputChange}
                     className={`pl-10 ${errors.emailOrUsername ? 'border-red-500' : ''}`}
-                    disabled={isLoading}
+                    disabled={authLoading}
                   />
                 </div>
                 {errors.emailOrUsername && (
@@ -182,7 +170,7 @@ export default function LoginPage() {
                     value={formData.password}
                     onChange={handleInputChange}
                     className={`pr-10 pl-10 ${errors.password ? 'border-red-500' : ''}`}
-                    disabled={isLoading}
+                    disabled={authLoading}
                   />
                   <Button
                     type='button'
@@ -190,7 +178,7 @@ export default function LoginPage() {
                     size='sm'
                     className='absolute top-1/2 right-1 h-7 w-7 -translate-y-1/2 transform p-0'
                     onClick={() => setShowPassword(!showPassword)}
-                    disabled={isLoading}
+                    disabled={authLoading}
                   >
                     {showPassword ? <EyeOff className='h-4 w-4' /> : <Eye className='h-4 w-4' />}
                   </Button>
@@ -199,22 +187,28 @@ export default function LoginPage() {
               </div>
 
               <div className='flex items-center justify-end'>
-                <Link href='/forgot-password' className='text-primary text-sm hover:underline'>
+                <Link
+                  href='/forgot-password'
+                  className='text-sm text-blue-600 hover:text-blue-800 hover:underline'
+                >
                   Forgot password?
                 </Link>
               </div>
 
-              <Button type='submit' className='w-full' disabled={isLoading}>
-                {isLoading ? 'Signing in...' : 'Sign In'}
+              <Button type='submit' className='w-full' disabled={authLoading}>
+                {authLoading ? 'Signing in...' : 'Sign In'}
               </Button>
-            </form>
 
-            <div className='text-center text-sm'>
-              <span className='text-muted-foreground'>Don't have an account? </span>
-              <Link href='/register' className='text-primary font-medium hover:underline'>
-                Sign up now
-              </Link>
-            </div>
+              <div className='text-center text-sm'>
+                Don't have an account?{' '}
+                <Link
+                  href='/register'
+                  className='text-blue-600 hover:text-blue-800 hover:underline'
+                >
+                  Sign up
+                </Link>
+              </div>
+            </form>
           </CardContent>
         </Card>
       </div>

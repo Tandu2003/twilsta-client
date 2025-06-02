@@ -1,7 +1,6 @@
 'use client';
 
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -21,7 +20,6 @@ interface UserProfile {
 }
 
 export default function ProfilePage() {
-  const router = useRouter();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');

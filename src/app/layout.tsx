@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 
-import { AlertCircle } from 'lucide-react';
-import { AlertTriangle, CheckCircle, Info } from 'lucide-react';
 import { Inter } from 'next/font/google';
 import { Toaster } from 'sonner';
 
 import '@/styles/globals.css';
+
+import { ReduxProvider } from '@/providers/ReduxProvider';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -22,8 +22,10 @@ export default function RootLayout({
   return (
     <html lang='en'>
       <body className={`antialiased ${inter.className}`}>
-        {children}
-        <Toaster richColors closeButton expand={true} position='top-right' />
+        <ReduxProvider>
+          {children}
+          <Toaster richColors closeButton expand={true} position='top-right' />
+        </ReduxProvider>
       </body>
     </html>
   );

@@ -65,6 +65,16 @@ const authSlice = createSlice({
     setInitialLoad: (state, action) => {
       state.initialLoad = action.payload;
     },
+    clearError: (state) => {
+      state.error = null;
+    },
+    resetState: (state) => {
+      state.user = null;
+      state.isAuthenticated = false;
+      state.isLoading = false;
+      state.error = null;
+      state.initialLoad = false;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -109,15 +119,31 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.error = action.error.message || 'Registration failed';
       })
+      .addCase(logout.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
       .addCase(logout.fulfilled, (state) => {
         state.user = null;
         state.isAuthenticated = false;
         state.error = null;
+        state.isLoading = false;
+      })
+      .addCase(logout.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message || 'Logout failed';
       });
   },
 });
 
-export const { setUser, setIsAuthenticated, setIsLoading, setError, setInitialLoad } =
-  authSlice.actions;
+export const {
+  setUser,
+  setIsAuthenticated,
+  setIsLoading,
+  setError,
+  setInitialLoad,
+  clearError,
+  resetState,
+} = authSlice.actions;
 
 export default authSlice.reducer;

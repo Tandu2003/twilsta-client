@@ -12,9 +12,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 
+import { useAuth } from '@/hooks/useAuth';
+
 export default function RegisterPage() {
+  const router = useRouter();
+  const { register, isLoading: authLoading } = useAuth();
   const [formData, setFormData] = useState({
-    name: '',
+    fullName: '',
     username: '',
     email: '',
     password: '',
@@ -22,7 +26,6 @@ export default function RegisterPage() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,10 +43,10 @@ export default function RegisterPage() {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.name) {
-      newErrors.name = 'Display name is required';
-    } else if (formData.name.length < 2) {
-      newErrors.name = 'Display name must be at least 2 characters';
+    if (!formData.fullName) {
+      newErrors.fullName = 'Display name is required';
+    } else if (formData.fullName.length < 2) {
+      newErrors.fullName = 'Display name must be at least 2 characters';
     }
 
     if (!formData.username) {
@@ -84,25 +87,14 @@ export default function RegisterPage() {
 
     if (!validateForm()) return;
 
-    setIsLoading(true);
-
     try {
-      // Mock API call - replace with actual registration
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      console.log('Registration attempt:', {
-        name: formData.name,
-        username: formData.username,
-        email: formData.email,
-        password: formData.password,
-      });
-
-      // On successful registration, redirect to verification page or dashboard
-    } catch (error) {
-      console.error('Registration error:', error);
-      setErrors({ general: 'Registration failed. Please try again.' });
-    } finally {
-      setIsLoading(false);
+      const { confirmPassword, ...registerData } = formData;
+      await register(registerData);
+      toast.success('Registration successful! Please check your email to verify your account.');
+      router.push('/verify-email');
+    } catch (error: any) {
+      const errorMessage = error?.message || 'Registration failed. Please try again.';
+      toast.error(errorMessage);
     }
   };
 
@@ -130,7 +122,7 @@ export default function RegisterPage() {
               <Button
                 variant='outline'
                 onClick={handleGoogleSignup}
-                disabled={isLoading}
+                disabled={authLoading}
                 className='w-full cursor-pointer'
               >
                 <svg className='mr-2 h-4 w-4' viewBox='0 0 24 24'>
@@ -156,7 +148,7 @@ export default function RegisterPage() {
               <Button
                 variant='outline'
                 onClick={handleFacebookSignup}
-                disabled={isLoading}
+                disabled={authLoading}
                 className='w-full cursor-pointer'
               >
                 <svg className='mr-2 h-4 w-4' fill='currentColor' viewBox='0 0 24 24'>
@@ -177,43 +169,40 @@ export default function RegisterPage() {
 
             {/* Registration Form */}
             <form onSubmit={handleSubmit} className='space-y-4'>
-              {errors.general && (
-                <div className='rounded-md bg-red-50 p-3 text-sm text-red-600'>
-                  {errors.general}
-                </div>
-              )}
-
               <div className='grid grid-cols-2 gap-4'>
                 <div className='space-y-2'>
-                  <Label htmlFor='name'>Display Name</Label>
+                  <Label htmlFor='fullName'>Display Name</Label>
                   <div className='relative'>
                     <User className='text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform' />
                     <Input
-                      id='name'
-                      name='name'
+                      id='fullName'
+                      name='fullName'
                       type='text'
                       placeholder='John Smith'
-                      value={formData.name}
+                      value={formData.fullName}
                       onChange={handleInputChange}
-                      className={`pl-10 ${errors.name ? 'border-red-500' : ''}`}
-                      disabled={isLoading}
+                      className={`pl-10 ${errors.fullName ? 'border-red-500' : ''}`}
+                      disabled={authLoading}
                     />
                   </div>
-                  {errors.name && <p className='text-sm text-red-600'>{errors.name}</p>}
+                  {errors.fullName && <p className='text-sm text-red-600'>{errors.fullName}</p>}
                 </div>
 
                 <div className='space-y-2'>
                   <Label htmlFor='username'>Username</Label>
-                  <Input
-                    id='username'
-                    name='username'
-                    type='text'
-                    placeholder='johnsmith'
-                    value={formData.username}
-                    onChange={handleInputChange}
-                    className={errors.username ? 'border-red-500' : ''}
-                    disabled={isLoading}
-                  />
+                  <div className='relative'>
+                    <User className='text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform' />
+                    <Input
+                      id='username'
+                      name='username'
+                      type='text'
+                      placeholder='johndoe'
+                      value={formData.username}
+                      onChange={handleInputChange}
+                      className={`pl-10 ${errors.username ? 'border-red-500' : ''}`}
+                      disabled={authLoading}
+                    />
+                  </div>
                   {errors.username && <p className='text-sm text-red-600'>{errors.username}</p>}
                 </div>
               </div>
@@ -226,11 +215,11 @@ export default function RegisterPage() {
                     id='email'
                     name='email'
                     type='email'
-                    placeholder='your.email@example.com'
+                    placeholder='john@example.com'
                     value={formData.email}
                     onChange={handleInputChange}
                     className={`pl-10 ${errors.email ? 'border-red-500' : ''}`}
-                    disabled={isLoading}
+                    disabled={authLoading}
                   />
                 </div>
                 {errors.email && <p className='text-sm text-red-600'>{errors.email}</p>}
@@ -244,11 +233,11 @@ export default function RegisterPage() {
                     id='password'
                     name='password'
                     type={showPassword ? 'text' : 'password'}
-                    placeholder='Create a strong password'
+                    placeholder='Enter your password'
                     value={formData.password}
                     onChange={handleInputChange}
                     className={`pr-10 pl-10 ${errors.password ? 'border-red-500' : ''}`}
-                    disabled={isLoading}
+                    disabled={authLoading}
                   />
                   <Button
                     type='button'
@@ -256,7 +245,7 @@ export default function RegisterPage() {
                     size='sm'
                     className='absolute top-1/2 right-1 h-7 w-7 -translate-y-1/2 transform p-0'
                     onClick={() => setShowPassword(!showPassword)}
-                    disabled={isLoading}
+                    disabled={authLoading}
                   >
                     {showPassword ? <EyeOff className='h-4 w-4' /> : <Eye className='h-4 w-4' />}
                   </Button>
@@ -272,11 +261,11 @@ export default function RegisterPage() {
                     id='confirmPassword'
                     name='confirmPassword'
                     type={showConfirmPassword ? 'text' : 'password'}
-                    placeholder='Re-enter your password'
+                    placeholder='Confirm your password'
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
                     className={`pr-10 pl-10 ${errors.confirmPassword ? 'border-red-500' : ''}`}
-                    disabled={isLoading}
+                    disabled={authLoading}
                   />
                   <Button
                     type='button'
@@ -284,7 +273,7 @@ export default function RegisterPage() {
                     size='sm'
                     className='absolute top-1/2 right-1 h-7 w-7 -translate-y-1/2 transform p-0'
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    disabled={isLoading}
+                    disabled={authLoading}
                   >
                     {showConfirmPassword ? (
                       <EyeOff className='h-4 w-4' />
@@ -298,19 +287,17 @@ export default function RegisterPage() {
                 )}
               </div>
 
-              {errors.agreeToTerms && <p className='text-sm text-red-600'>{errors.agreeToTerms}</p>}
-
-              <Button type='submit' className='w-full' disabled={isLoading}>
-                {isLoading ? 'Creating account...' : 'Create Account'}
+              <Button type='submit' className='w-full' disabled={authLoading}>
+                {authLoading ? 'Creating account...' : 'Create Account'}
               </Button>
-            </form>
 
-            <div className='text-center text-sm'>
-              <span className='text-muted-foreground'>Already have an account? </span>
-              <Link href='/login' className='text-primary font-medium hover:underline'>
-                Sign in now
-              </Link>
-            </div>
+              <div className='text-center text-sm'>
+                Already have an account?{' '}
+                <Link href='/login' className='text-blue-600 hover:text-blue-800 hover:underline'>
+                  Sign in
+                </Link>
+              </div>
+            </form>
           </CardContent>
         </Card>
       </div>

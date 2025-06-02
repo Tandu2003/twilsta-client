@@ -3,21 +3,25 @@
 import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
+import { useAuth } from '@/hooks/useAuth';
+
 export default function VerifyEmailPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
+  const { verifyEmail } = useAuth();
 
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const verifyEmail = async () => {
+    const verifyEmailToken = async () => {
       if (!token) {
         setStatus('error');
         setError('Invalid or missing verification token');
@@ -25,19 +29,22 @@ export default function VerifyEmailPage() {
       }
 
       try {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        console.log('Verify email token: ', token);
-
+        await verifyEmail({ token });
         setStatus('success');
-      } catch (err) {
+        toast.success('Email verified successfully');
+        setTimeout(() => {
+          router.push('/login');
+        }, 2000);
+      } catch (err: any) {
         setStatus('error');
-        setError('Failed to verify email. Please try again.');
+        const errorMessage = err?.message || 'Failed to verify email. Please try again.';
+        setError(errorMessage);
+        toast.error(errorMessage);
       }
     };
 
-    verifyEmail();
-  }, [token, router]);
+    verifyEmailToken();
+  }, [token, router, verifyEmail]);
 
   return (
     <div className='container flex h-screen w-screen flex-col items-center justify-center'>
