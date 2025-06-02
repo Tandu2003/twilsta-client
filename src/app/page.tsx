@@ -106,10 +106,10 @@ export default function LandingPage() {
 
             <div className='flex items-center space-x-4'>
               <Button variant='ghost' asChild>
-                <Link href='/auth/login'>Sign In</Link>
+                <Link href='/login'>Sign In</Link>
               </Button>
               <Button asChild>
-                <Link href='/auth/register'>Sign Up Now</Link>
+                <Link href='/register'>Sign Up Now</Link>
               </Button>
             </div>
           </div>
@@ -128,7 +128,7 @@ export default function LandingPage() {
           </p>
           <div className='flex flex-col justify-center gap-4 sm:flex-row'>
             <Button size='lg' className='px-8 text-lg' asChild>
-              <Link href='/auth/register'>
+              <Link href='/register'>
                 Get Started Free
                 <ArrowRight className='ml-2 h-5 w-5' />
               </Link>
@@ -224,7 +224,7 @@ export default function LandingPage() {
             Join the Twilsta community today and discover a new world
           </p>
           <Button size='lg' variant='secondary' className='px-8 text-lg' asChild>
-            <Link href='/auth/register'>
+            <Link href='/register'>
               Create Free Account
               <ArrowRight className='ml-2 h-5 w-5' />
             </Link>

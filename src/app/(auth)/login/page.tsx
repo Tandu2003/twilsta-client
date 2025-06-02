@@ -1,6 +1,6 @@
 'use client';
 
-import { Eye, EyeOff, Lock, Mail, User } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -12,16 +12,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 
-export default function RegisterPage() {
+export default function LoginPage() {
   const [formData, setFormData] = useState({
-    name: '',
-    username: '',
     email: '',
     password: '',
-    confirmPassword: '',
   });
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -31,7 +27,6 @@ export default function RegisterPage() {
       ...prev,
       [name]: value,
     }));
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }));
     }
@@ -39,20 +34,6 @@ export default function RegisterPage() {
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-
-    if (!formData.name) {
-      newErrors.name = 'Display name is required';
-    } else if (formData.name.length < 2) {
-      newErrors.name = 'Display name must be at least 2 characters';
-    }
-
-    if (!formData.username) {
-      newErrors.username = 'Username is required';
-    } else if (formData.username.length < 3) {
-      newErrors.username = 'Username must be at least 3 characters';
-    } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
-      newErrors.username = 'Username can only contain letters, numbers and underscores';
-    }
 
     if (!formData.email) {
       newErrors.email = 'Email is required';
@@ -62,17 +43,8 @@ export default function RegisterPage() {
 
     if (!formData.password) {
       newErrors.password = 'Password is required';
-    } else if (formData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
-    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
-      newErrors.password =
-        'Password must contain at least 1 uppercase, 1 lowercase letter and 1 number';
-    }
-
-    if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'Password confirmation is required';
-    } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
     }
 
     setErrors(newErrors);
@@ -87,30 +59,25 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      // Mock API call - replace with actual registration
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      console.log('Registration attempt:', {
-        name: formData.name,
-        username: formData.username,
+      console.log('Login attempt:', {
         email: formData.email,
         password: formData.password,
       });
-
-      // On successful registration, redirect to verification page or dashboard
     } catch (error) {
-      console.error('Registration error:', error);
-      setErrors({ general: 'Registration failed. Please try again.' });
+      console.error('Login error:', error);
+      setErrors({ general: 'Login failed. Please try again.' });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleGoogleSignup = () => {
+  const handleGoogleLogin = () => {
     toast.warning('Feature under development');
   };
 
-  const handleFacebookSignup = () => {
+  const handleFacebookLogin = () => {
     toast.warning('Feature under development');
   };
 
@@ -119,17 +86,17 @@ export default function RegisterPage() {
       <div className='w-full max-w-md space-y-6'>
         <Card className='border-0 shadow-lg'>
           <CardHeader className='space-y-1'>
-            <CardTitle className='text-center text-2xl font-semibold'>Sign Up</CardTitle>
+            <CardTitle className='text-center text-2xl font-semibold'>Sign In</CardTitle>
             <CardDescription className='text-center'>
-              Fill in the information to create a new account
+              Enter your email and password to continue
             </CardDescription>
           </CardHeader>
           <CardContent className='space-y-4'>
-            {/* Social Signup */}
+            {/* Social Login */}
             <div className='grid grid-cols-2 gap-3'>
               <Button
                 variant='outline'
-                onClick={handleGoogleSignup}
+                onClick={handleGoogleLogin}
                 disabled={isLoading}
                 className='w-full cursor-pointer'
               >
@@ -155,7 +122,7 @@ export default function RegisterPage() {
               </Button>
               <Button
                 variant='outline'
-                onClick={handleFacebookSignup}
+                onClick={handleFacebookLogin}
                 disabled={isLoading}
                 className='w-full cursor-pointer'
               >
@@ -171,52 +138,17 @@ export default function RegisterPage() {
                 <Separator className='w-full' />
               </div>
               <div className='relative flex justify-center text-xs uppercase'>
-                <span className='text-muted-foreground bg-white px-2'>Or sign up with</span>
+                <span className='text-muted-foreground bg-white px-2'>Or continue with</span>
               </div>
             </div>
 
-            {/* Registration Form */}
+            {/* Login Form */}
             <form onSubmit={handleSubmit} className='space-y-4'>
               {errors.general && (
                 <div className='rounded-md bg-red-50 p-3 text-sm text-red-600'>
                   {errors.general}
                 </div>
               )}
-
-              <div className='grid grid-cols-2 gap-4'>
-                <div className='space-y-2'>
-                  <Label htmlFor='name'>Display Name</Label>
-                  <div className='relative'>
-                    <User className='text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform' />
-                    <Input
-                      id='name'
-                      name='name'
-                      type='text'
-                      placeholder='John Smith'
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      className={`pl-10 ${errors.name ? 'border-red-500' : ''}`}
-                      disabled={isLoading}
-                    />
-                  </div>
-                  {errors.name && <p className='text-sm text-red-600'>{errors.name}</p>}
-                </div>
-
-                <div className='space-y-2'>
-                  <Label htmlFor='username'>Username</Label>
-                  <Input
-                    id='username'
-                    name='username'
-                    type='text'
-                    placeholder='johnsmith'
-                    value={formData.username}
-                    onChange={handleInputChange}
-                    className={errors.username ? 'border-red-500' : ''}
-                    disabled={isLoading}
-                  />
-                  {errors.username && <p className='text-sm text-red-600'>{errors.username}</p>}
-                </div>
-              </div>
 
               <div className='space-y-2'>
                 <Label htmlFor='email'>Email</Label>
@@ -244,7 +176,7 @@ export default function RegisterPage() {
                     id='password'
                     name='password'
                     type={showPassword ? 'text' : 'password'}
-                    placeholder='Create a strong password'
+                    placeholder='Enter your password'
                     value={formData.password}
                     onChange={handleInputChange}
                     className={`pr-10 pl-10 ${errors.password ? 'border-red-500' : ''}`}
@@ -264,51 +196,21 @@ export default function RegisterPage() {
                 {errors.password && <p className='text-sm text-red-600'>{errors.password}</p>}
               </div>
 
-              <div className='space-y-2'>
-                <Label htmlFor='confirmPassword'>Confirm Password</Label>
-                <div className='relative'>
-                  <Lock className='text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform' />
-                  <Input
-                    id='confirmPassword'
-                    name='confirmPassword'
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    placeholder='Re-enter your password'
-                    value={formData.confirmPassword}
-                    onChange={handleInputChange}
-                    className={`pr-10 pl-10 ${errors.confirmPassword ? 'border-red-500' : ''}`}
-                    disabled={isLoading}
-                  />
-                  <Button
-                    type='button'
-                    variant='ghost'
-                    size='sm'
-                    className='absolute top-1/2 right-1 h-7 w-7 -translate-y-1/2 transform p-0'
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    disabled={isLoading}
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff className='h-4 w-4' />
-                    ) : (
-                      <Eye className='h-4 w-4' />
-                    )}
-                  </Button>
-                </div>
-                {errors.confirmPassword && (
-                  <p className='text-sm text-red-600'>{errors.confirmPassword}</p>
-                )}
+              <div className='flex items-center justify-end'>
+                <Link href='/forgot-password' className='text-primary text-sm hover:underline'>
+                  Forgot password?
+                </Link>
               </div>
 
-              {errors.agreeToTerms && <p className='text-sm text-red-600'>{errors.agreeToTerms}</p>}
-
               <Button type='submit' className='w-full' disabled={isLoading}>
-                {isLoading ? 'Creating account...' : 'Create Account'}
+                {isLoading ? 'Signing in...' : 'Sign In'}
               </Button>
             </form>
 
             <div className='text-center text-sm'>
-              <span className='text-muted-foreground'>Already have an account? </span>
-              <Link href='/auth/login' className='text-primary font-medium hover:underline'>
-                Sign in now
+              <span className='text-muted-foreground'>Don't have an account? </span>
+              <Link href='/register' className='text-primary font-medium hover:underline'>
+                Sign up now
               </Link>
             </div>
           </CardContent>

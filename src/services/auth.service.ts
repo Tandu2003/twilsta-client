@@ -95,7 +95,7 @@ const authService = {
     email,
   }: ResendVerificationEmailRequest): Promise<ResendVerificationEmailResponse> => {
     const response = await apiInstance.post<ResendVerificationEmailResponse>(
-      '/auth/resend-verification-email',
+      '/auth/send-verification-email',
       {
         email,
       },
