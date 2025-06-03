@@ -3,9 +3,16 @@ import { NextRequest, NextResponse } from 'next/server';
 const PROTECTED_ROUTES = ['/', '/search', '/[username]'];
 const AUTH_ROUTES = ['/login', '/register', '/forgot-password', '/verify-email', '/reset-password'];
 
+// Prevent middleware loops by tracking refresh attempts
+const REFRESH_HEADER = 'x-token-refresh-attempt';
+const MAX_REFRESH_ATTEMPTS = 2;
+
 export async function middleware(request: NextRequest) {
   const url = request.nextUrl.clone();
   const pathname = url.pathname;
+
+  // Track refresh attempts to prevent infinite loops
+  const refreshAttempts = parseInt(request.headers.get(REFRESH_HEADER) || '0');
 
   // Nếu đang ở các trang auth thì skip luôn middleware xác thực để tránh lặp
   if (AUTH_ROUTES.includes(pathname)) {
@@ -25,8 +32,8 @@ export async function middleware(request: NextRequest) {
       });
 
       if (authRes.ok) {
-        const response = await authRes.json();
-        if (response.success && response.data.isValid === true) {
+        const authResponse = await authRes.json();
+        if (authResponse.success && authResponse.data.isValid === true) {
           url.pathname = '/';
           return NextResponse.redirect(url);
         }
@@ -60,20 +67,68 @@ export async function middleware(request: NextRequest) {
     });
 
     if (!authRes.ok) {
-      // API lỗi thì redirect login luôn
+      // API lỗi - nếu 401 và có refresh token, thử refresh
+      if (authRes.status === 401 && refreshToken && refreshAttempts < MAX_REFRESH_ATTEMPTS) {
+        try {
+          const refreshRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/refresh-token`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Cookie: `refreshToken=${refreshToken}`,
+            },
+            credentials: 'include',
+          });
+
+          if (refreshRes.ok) {
+            // Refresh thành công, cho phép request tiếp tục với header đánh dấu
+            const continueResponse = NextResponse.next();
+            continueResponse.headers.set(REFRESH_HEADER, String(refreshAttempts + 1));
+            return continueResponse;
+          }
+        } catch (error) {
+          console.error('Middleware refresh failed:', error);
+        }
+      }
+
+      // Refresh thất bại hoặc không có refresh token, redirect login
       url.pathname = '/login';
       return NextResponse.redirect(url);
     }
 
-    const response = await authRes.json();
+    const authResponse = await authRes.json();
 
-    if (!(response.success && response.data.isValid === true)) {
+    if (!(authResponse.success && authResponse.data.isValid === true)) {
+      // Token không hợp lệ - thử refresh nếu có
+      if (refreshToken && refreshAttempts < MAX_REFRESH_ATTEMPTS) {
+        try {
+          const refreshRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/refresh-token`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Cookie: `refreshToken=${refreshToken}`,
+            },
+            credentials: 'include',
+          });
+
+          if (refreshRes.ok) {
+            // Refresh thành công, cho phép request tiếp tục
+            const retryResponse = NextResponse.next();
+            retryResponse.headers.set(REFRESH_HEADER, String(refreshAttempts + 1));
+            return retryResponse;
+          }
+        } catch (error) {
+          console.error('Middleware refresh failed:', error);
+        }
+      }
+
       url.pathname = '/login';
       return NextResponse.redirect(url);
     }
 
-    // Nếu hợp lệ thì cho qua
-    return NextResponse.next();
+    // Token hợp lệ, reset refresh attempts
+    const successResponse = NextResponse.next();
+    successResponse.headers.delete(REFRESH_HEADER);
+    return successResponse;
   }
 
   // Các route không phải auth hay protected, cho qua luôn

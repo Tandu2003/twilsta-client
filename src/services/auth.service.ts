@@ -116,6 +116,11 @@ const authService = {
     );
     return response.data;
   },
+
+  refreshToken: async (): Promise<{ message: string }> => {
+    const response = await apiInstance.post<{ message: string }>('/auth/refresh-token');
+    return response.data;
+  },
 };
 
 export default authService;
