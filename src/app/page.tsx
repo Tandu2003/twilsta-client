@@ -152,10 +152,10 @@ export default function LandingPage() {
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
-                      <Link href='/profile'>Profile</Link>
+                      <Link href={`/${currentUser?.username}`}>Profile</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link href='/settings'>Settings</Link>
+                      <Link href={`/${currentUser?.username}/settings`}>Settings</Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
