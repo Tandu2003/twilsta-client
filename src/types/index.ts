@@ -1,5 +1,6 @@
 export * from './user.type';
 export * from './auth.type';
+export * from './follow.type';
 
 export interface ApiResponse<T = any> {
   statusCode: number;
