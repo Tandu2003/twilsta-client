@@ -93,15 +93,6 @@ export const useUser = () => {
     [dispatch],
   );
 
-  // Computed values
-  const hasUser = Boolean(currentUser);
-  const isUserVerified = currentUser?.isVerified ?? false;
-  const isUserPrivate = currentUser?.isPrivate ?? false;
-  const userFullName = currentUser?.fullName || '';
-  const userBio = currentUser?.bio || '';
-  const userAvatar = currentUser?.avatar;
-  const userWebsite = currentUser?.website || '';
-
   return {
     // State
     currentUser,
@@ -112,15 +103,6 @@ export const useUser = () => {
     error,
     searchError,
     initialLoad,
-
-    // Computed
-    hasUser,
-    isUserVerified,
-    isUserPrivate,
-    userFullName,
-    userBio,
-    userAvatar,
-    userWebsite,
 
     // Actions
     fetchCurrentUser,
