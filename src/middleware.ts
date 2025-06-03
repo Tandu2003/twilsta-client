@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const PROTECTED_ROUTES = ['/'];
+const PROTECTED_ROUTES = ['/', '/search', '/[username]'];
 const AUTH_ROUTES = ['/login', '/register', '/forgot-password', '/verify-email', '/reset-password'];
 
 export async function middleware(request: NextRequest) {
@@ -38,6 +38,7 @@ export async function middleware(request: NextRequest) {
   // Với các route cần bảo vệ
   const isProtectedRoute = PROTECTED_ROUTES.some((route) => pathname.startsWith(route));
 
+  // Nếu đang ở các route cần bảo vệ
   if (isProtectedRoute) {
     const accessToken = request.cookies.get('accessToken')?.value;
     const refreshToken = request.cookies.get('refreshToken')?.value;
