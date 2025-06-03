@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-import ProfileFollowButton from '@/components/profile/ProfileFollowButton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -13,7 +12,6 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 
 import { useAuthRefresh } from '@/hooks/useAuthRefresh';
-import { useFollow } from '@/hooks/useFollow';
 import { useUser } from '@/hooks/useUser';
 
 import userService from '@/services/user.service';
@@ -29,7 +27,6 @@ export default function UserProfile({ username }: UserProfileProps) {
   const router = useRouter();
   const { currentUser, isLoading: userLoading } = useUser();
   const { isAuthenticated } = useAuthRefresh();
-  const { getFollowStatusForUser, getFollowStatus } = useFollow();
 
   const [user, setUser] = useState<User | null>(null);
   const [stats, setStats] = useState<UserStats | null>(null);
@@ -38,9 +35,6 @@ export default function UserProfile({ username }: UserProfileProps) {
 
   // Determine if this is actually the current user's profile
   const isOwnProfile = isAuthenticated && currentUser && currentUser.username === username;
-
-  // Get follow status for this user (if not own profile)
-  const followStatus = !isOwnProfile && user ? getFollowStatusForUser(user.id) : null;
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -63,15 +57,6 @@ export default function UserProfile({ username }: UserProfileProps) {
             const userResponse = await userService.getUserByUsername(username);
             if (userResponse.data) {
               setUser(userResponse.data);
-
-              // Load follow status if authenticated
-              if (isAuthenticated && userResponse.data.id) {
-                try {
-                  await getFollowStatus(userResponse.data.id);
-                } catch (followError) {
-                  console.error('Failed to load follow status:', followError);
-                }
-              }
 
               // Try to get stats
               try {
@@ -101,7 +86,7 @@ export default function UserProfile({ username }: UserProfileProps) {
     if (username) {
       fetchUserData();
     }
-  }, [username, isOwnProfile, currentUser, userLoading, isAuthenticated, getFollowStatus]);
+  }, [username, isOwnProfile, currentUser, userLoading, isAuthenticated]);
 
   // Loading state
   if (isLoading || userLoading) {
@@ -129,10 +114,7 @@ export default function UserProfile({ username }: UserProfileProps) {
 
   // Private profile check - only show if it's not own profile and user is private
   // and we're not following them
-  const isPrivateAndNotFollowing =
-    user.isPrivate &&
-    !isOwnProfile &&
-    (!followStatus || (!followStatus.isFollowing && !followStatus.isPending));
+  const isPrivateAndNotFollowing = user.isPrivate && !isOwnProfile;
 
   if (isPrivateAndNotFollowing) {
     return (
@@ -172,15 +154,6 @@ export default function UserProfile({ username }: UserProfileProps) {
                     Follow @{user.username} to see their photos and videos.
                   </p>
                 </div>
-
-                {/* Follow Button */}
-                {isAuthenticated && (
-                  <ProfileFollowButton
-                    targetUserId={user.id}
-                    username={user.username}
-                    className='w-32'
-                  />
-                )}
               </div>
             </div>
           </CardContent>
@@ -227,21 +200,14 @@ export default function UserProfile({ username }: UserProfileProps) {
               {isOwnProfile ? (
                 <>
                   <Button asChild>
-                    <Link href={`/${currentUser?.username}/settings/profile`}>Edit Profile</Link>
+                    <Link href='/settings/profile'>Edit Profile</Link>
                   </Button>
                   <Button variant='outline' asChild>
-                    <Link href={`/${currentUser?.username}/settings`}>Settings</Link>
+                    <Link href='/settings'>Settings</Link>
                   </Button>
                 </>
               ) : (
                 <>
-                  {isAuthenticated && (
-                    <ProfileFollowButton
-                      targetUserId={user.id}
-                      username={user.username}
-                      className='min-w-[120px]'
-                    />
-                  )}
                   <Button variant='outline' size='default'>
                     <MessageCircle className='mr-2 h-4 w-4' />
                     Message
