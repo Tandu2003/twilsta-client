@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Camera, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import * as z from 'zod';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -43,7 +44,7 @@ interface EditProfileFormProps {
 }
 
 export default function EditProfileForm({ user, onSuccess }: EditProfileFormProps) {
-  const { updateProfile, updateAvatar, isLoading } = useUser();
+  const { updateUserProfile, updateUserAvatar, isUpdating, error, clearUserError } = useUser();
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
@@ -72,13 +73,17 @@ export default function EditProfileForm({ user, onSuccess }: EditProfileFormProp
 
   const onSubmit = async (data: ProfileFormData) => {
     try {
+      // Clear any previous errors
+      clearUserError();
+
       // Upload avatar first if there's a new one
-      let updatedUser = user;
       if (avatarFile) {
-        const avatarResult = await updateAvatar(avatarFile);
-        if (avatarResult) {
-          updatedUser = avatarResult;
+        const avatarSuccess = await updateUserAvatar(avatarFile);
+        if (!avatarSuccess) {
+          toast.error(error || 'Failed to update avatar');
+          return;
         }
+        toast.success('Avatar updated successfully');
       }
 
       // Update profile data
@@ -90,13 +95,19 @@ export default function EditProfileForm({ user, onSuccess }: EditProfileFormProp
         isPrivate: data.isPrivate,
       };
 
-      const result = await updateProfile(profileData);
-      if (result) {
-        updatedUser = result;
-        onSuccess?.(updatedUser);
+      const profileSuccess = await updateUserProfile(profileData);
+      if (profileSuccess) {
+        toast.success('Profile updated successfully');
+        // Reset avatar file since it's been uploaded
+        setAvatarFile(null);
+        setAvatarPreview(null);
+        onSuccess?.(user); // Note: updated user data comes from Redux store
+      } else {
+        toast.error(error || 'Failed to update profile');
       }
     } catch (error) {
       console.error('Failed to update profile:', error);
+      toast.error('An unexpected error occurred');
     }
   };
 
@@ -243,8 +254,8 @@ export default function EditProfileForm({ user, onSuccess }: EditProfileFormProp
 
             {/* Submit Button */}
             <div className='flex justify-end space-x-2'>
-              <Button type='submit' disabled={isLoading}>
-                {isLoading ? (
+              <Button type='submit' disabled={isUpdating}>
+                {isUpdating ? (
                   <>
                     <Loader2 className='mr-2 h-4 w-4 animate-spin' />
                     Saving...

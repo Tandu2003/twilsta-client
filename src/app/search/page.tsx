@@ -13,56 +13,43 @@ import { Input } from '@/components/ui/input';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useUser } from '@/hooks/useUser';
 
-import { UserSearchResponse, UserSearchResult } from '@/types';
+import { UserSearchResult } from '@/types';
 
 export default function SearchPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
   const [query, setQuery] = useState(searchParams.get('q') || '');
-  const [searchResults, setSearchResults] = useState<UserSearchResponse | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
 
-  const { searchUsers, isLoading } = useUser();
+  const { searchResults, isSearching, findUsers, clearUserSearchResults, clearUserSearchError } =
+    useUser();
 
   const debouncedQuery = useDebounce(query, 300);
 
   const handleSearch = useCallback(
     async (searchQuery: string, offset = 0) => {
       if (!searchQuery.trim()) {
-        setSearchResults(null);
+        clearUserSearchResults();
         setHasSearched(false);
         return;
       }
 
       try {
-        const results = await searchUsers({
+        const success = await findUsers({
           q: searchQuery,
           limit: 20,
           offset,
         });
 
-        if (results) {
-          if (offset === 0) {
-            setSearchResults(results);
-          } else {
-            // Append to existing results for pagination
-            setSearchResults((prev) =>
-              prev
-                ? {
-                    ...results,
-                    users: [...prev.users, ...results.users],
-                  }
-                : results,
-            );
-          }
+        if (success) {
           setHasSearched(true);
         }
       } catch (error) {
         console.error('Search failed:', error);
       }
     },
-    [searchUsers],
+    [findUsers, clearUserSearchResults],
   );
 
   useEffect(() => {
@@ -78,6 +65,14 @@ export default function SearchPage() {
       handleSearch(query, searchResults.users.length);
     }
   };
+
+  // Clear search results when component unmounts
+  useEffect(() => {
+    return () => {
+      clearUserSearchResults();
+      clearUserSearchError();
+    };
+  }, [clearUserSearchResults, clearUserSearchError]);
 
   return (
     <Suspense
@@ -105,7 +100,7 @@ export default function SearchPage() {
                 onChange={(e) => setQuery(e.target.value)}
                 className='pl-10'
               />
-              {isLoading && (
+              {isSearching && (
                 <Loader2 className='absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 transform animate-spin text-gray-400' />
               )}
             </div>
@@ -180,8 +175,8 @@ export default function SearchPage() {
                     {/* Load More Button */}
                     {searchResults.hasMore && (
                       <div className='text-center'>
-                        <Button variant='outline' onClick={loadMore} disabled={isLoading}>
-                          {isLoading ? (
+                        <Button variant='outline' onClick={loadMore} disabled={isSearching}>
+                          {isSearching ? (
                             <>
                               <Loader2 className='mr-2 h-4 w-4 animate-spin' />
                               Loading...
@@ -201,9 +196,11 @@ export default function SearchPage() {
             {!hasSearched && !query && (
               <Card>
                 <CardContent className='py-12 text-center'>
-                  <Search className='mx-auto mb-4 h-12 w-12 text-gray-300' />
-                  <h3 className='mb-2 text-lg font-medium text-gray-900'>Search for users</h3>
-                  <p className='text-gray-500'>Enter a username or name to find users on Twilsta</p>
+                  <Search className='mx-auto mb-4 h-12 w-12 text-gray-400' />
+                  <h3 className='mb-2 text-lg font-semibold text-gray-900'>Search for users</h3>
+                  <p className='text-gray-500'>
+                    Find and connect with other users on the platform.
+                  </p>
                 </CardContent>
               </Card>
             )}

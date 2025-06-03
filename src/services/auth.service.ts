@@ -5,7 +5,6 @@ import {
   CheckUsernameResponse,
   ForgotPasswordRequest,
   ForgotPasswordResponse,
-  GetMeResponse,
   LoginRequest,
   LoginResponse,
   LogoutResponse,
@@ -22,11 +21,6 @@ import {
 } from '@/types';
 
 const authService = {
-  getMe: async (): Promise<GetMeResponse> => {
-    const response = await apiInstance.get<GetMeResponse>('/auth/me');
-    return response.data;
-  },
-
   login: async ({ emailOrUsername, password }: LoginRequest): Promise<LoginResponse> => {
     const response = await apiInstance.post<LoginResponse>('/auth/login', {
       emailOrUsername,

@@ -1,7 +1,8 @@
 import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { clearError, getMe, login, logout, register, resetState } from '@/store/slices/auth.slice';
+import { clearError, login, logout, register } from '@/store/slices/auth.slice';
+import { getCurrentUser, resetUserState } from '@/store/slices/user.slice';
 import { AppDispatch, RootState } from '@/store/store';
 
 import authService from '@/services/auth.service';
@@ -16,7 +17,7 @@ import {
 
 export const useAuth = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { user, isAuthenticated, isLoading, error, initialLoad } = useSelector(
+  const { isAuthenticated, isLoading, error, initialLoad } = useSelector(
     (state: RootState) => state.auth,
   );
 
@@ -47,7 +48,7 @@ export const useAuth = () => {
   const handleLogout = useCallback(async () => {
     try {
       await dispatch(logout()).unwrap();
-      dispatch(resetState());
+      dispatch(resetUserState());
     } catch (error) {
       throw error;
     }
@@ -55,7 +56,7 @@ export const useAuth = () => {
 
   const handleGetMe = useCallback(async () => {
     try {
-      const result = await dispatch(getMe()).unwrap();
+      const result = await dispatch(getCurrentUser()).unwrap();
       return result;
     } catch (error) {
       throw error;
@@ -94,7 +95,6 @@ export const useAuth = () => {
   }, [dispatch]);
 
   return {
-    user,
     isAuthenticated,
     isLoading,
     error,

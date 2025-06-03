@@ -11,7 +11,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 
+import { useAuthRefresh } from '@/hooks/useAuthRefresh';
 import { useUser } from '@/hooks/useUser';
+
+import userService from '@/services/user.service';
 
 import { User, UserStats } from '@/types';
 import { formatDate } from '@/utils/date';
@@ -23,36 +26,60 @@ interface UserProfileProps {
 
 export default function UserProfile({ username, isOwnProfile = false }: UserProfileProps) {
   const router = useRouter();
-  const { getUserByUsername, getUserStats, isLoading } = useUser();
+  const { currentUser, isLoading: userLoading } = useUser();
+  const { currentUser: authUser, isAuthenticated } = useAuthRefresh();
 
   const [user, setUser] = useState<User | null>(null);
   const [stats, setStats] = useState<UserStats | null>(null);
   const [isPrivateProfile, setIsPrivateProfile] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchUserData = async () => {
+      setIsLoading(true);
       try {
-        const userData = await getUserByUsername(username);
-        if (userData) {
-          setUser(userData);
-
-          // Try to get stats (might fail if profile is private)
+        // If it's own profile, use currentUser from Redux store
+        if (isOwnProfile && currentUser) {
+          setUser(currentUser);
           try {
-            const userStats = await getUserStats(userData.id);
-            setStats(userStats);
+            const statsResponse = await userService.getUserStats(currentUser.id);
+            setStats(statsResponse.data || null);
           } catch (error) {
-            setIsPrivateProfile(true);
+            console.error('Failed to fetch user stats:', error);
+          }
+        } else {
+          // For other users, fetch by username
+          const userResponse = await userService.getUserByUsername(username);
+          if (userResponse.data) {
+            setUser(userResponse.data);
+
+            // Try to get stats (might fail if profile is private)
+            try {
+              const statsResponse = await userService.getUserStats(userResponse.data.id);
+              setStats(statsResponse.data || null);
+            } catch (error) {
+              setIsPrivateProfile(true);
+              console.error('Failed to fetch user stats (possibly private):', error);
+            }
           }
         }
       } catch (error) {
         console.error('Failed to fetch user data:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    fetchUserData();
-  }, [username, getUserByUsername, getUserStats]);
+    // Only fetch if we have username or if it's own profile and currentUser is available
+    if (username && (!isOwnProfile || currentUser)) {
+      fetchUserData();
+    } else if (isOwnProfile && !currentUser && !userLoading) {
+      setIsLoading(false);
+    }
+  }, [username, isOwnProfile, currentUser, userLoading]);
 
-  if (isLoading) {
+  // Loading state
+  if (isLoading || userLoading) {
     return (
       <div className='flex min-h-screen items-center justify-center'>
         <div className='h-32 w-32 animate-spin rounded-full border-b-2 border-gray-900'></div>
@@ -60,6 +87,7 @@ export default function UserProfile({ username, isOwnProfile = false }: UserProf
     );
   }
 
+  // User not found
   if (!user) {
     return (
       <div className='flex min-h-screen flex-col items-center justify-center'>
@@ -70,6 +98,7 @@ export default function UserProfile({ username, isOwnProfile = false }: UserProf
     );
   }
 
+  // Private profile check
   if (user.isPrivate && !isOwnProfile && isPrivateProfile) {
     return (
       <div className='flex min-h-screen flex-col items-center justify-center'>

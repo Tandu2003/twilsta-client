@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { AlertTriangle, Eye, EyeOff, Loader2, Lock } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import * as z from 'zod';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -30,13 +31,13 @@ const passwordSchema = z
     newPassword: z
       .string()
       .min(8, 'Password must be at least 8 characters')
-      .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-      .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-      .regex(/[0-9]/, 'Password must contain at least one number'),
-    confirmPassword: z.string().min(1, 'Please confirm your password'),
+      .regex(/(?=.*[a-z])/, 'Must contain at least one lowercase letter')
+      .regex(/(?=.*[A-Z])/, 'Must contain at least one uppercase letter')
+      .regex(/(?=.*\d)/, 'Must contain at least one number'),
+    confirmPassword: z.string(),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
-    message: "Passwords don't match",
+    message: 'Passwords do not match',
     path: ['confirmPassword'],
   });
 
@@ -47,7 +48,7 @@ interface ChangePasswordFormProps {
 }
 
 export default function ChangePasswordForm({ onSuccess }: ChangePasswordFormProps) {
-  const { changePassword, isLoading } = useUser();
+  const { updateUserPassword, isUpdating, error, clearUserError } = useUser();
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -63,19 +64,26 @@ export default function ChangePasswordForm({ onSuccess }: ChangePasswordFormProp
 
   const onSubmit = async (data: PasswordFormData) => {
     try {
+      // Clear any previous errors
+      clearUserError();
+
       const changePasswordData: ChangePasswordRequest = {
         currentPassword: data.currentPassword,
         newPassword: data.newPassword,
       };
 
-      const success = await changePassword(changePasswordData);
+      const success = await updateUserPassword(changePasswordData);
 
       if (success) {
+        toast.success('Password changed successfully');
         form.reset();
         onSuccess?.();
+      } else {
+        toast.error(error || 'Failed to change password');
       }
     } catch (error) {
       console.error('Failed to change password:', error);
+      toast.error('An unexpected error occurred');
     }
   };
 
@@ -241,21 +249,21 @@ export default function ChangePasswordForm({ onSuccess }: ChangePasswordFormProp
               )}
             />
 
-            {/* Submit Button */}
+            {/* Submit Buttons */}
             <div className='flex justify-end space-x-2'>
               <Button
                 type='button'
                 variant='outline'
                 onClick={() => form.reset()}
-                disabled={isLoading}
+                disabled={isUpdating}
               >
                 Cancel
               </Button>
-              <Button type='submit' disabled={isLoading}>
-                {isLoading ? (
+              <Button type='submit' disabled={isUpdating}>
+                {isUpdating ? (
                   <>
                     <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                    Changing Password...
+                    Changing...
                   </>
                 ) : (
                   'Change Password'
@@ -270,19 +278,13 @@ export default function ChangePasswordForm({ onSuccess }: ChangePasswordFormProp
 }
 
 function getPasswordStrength(password: string): number {
-  if (!password) return 0;
-
   let strength = 0;
 
-  // Length check
-  if (password.length >= 8) strength++;
-  if (password.length >= 12) strength++;
-
-  // Character variety checks
-  if (/[A-Z]/.test(password)) strength++;
-  if (/[a-z]/.test(password)) strength++;
-  if (/[0-9]/.test(password)) strength++;
-  if (/[^A-Za-z0-9]/.test(password)) strength++;
+  if (password.length >= 8) strength += 1;
+  if (/[a-z]/.test(password)) strength += 1;
+  if (/[A-Z]/.test(password)) strength += 1;
+  if (/\d/.test(password)) strength += 1;
+  if (/[^a-zA-Z0-9]/.test(password)) strength += 1;
 
   return Math.min(strength, 4);
 }

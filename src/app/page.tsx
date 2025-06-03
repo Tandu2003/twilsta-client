@@ -18,15 +18,19 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-import { useAuth } from '@/hooks/useAuth';
+import { useAuthRefresh } from '@/hooks/useAuthRefresh';
+import { useUser } from '@/hooks/useUser';
 
 export default function LandingPage() {
-  const { user, isAuthenticated, logout, getMe } = useAuth();
+  const { isAuthenticated, logout } = useAuthRefresh();
+  const { currentUser, fetchCurrentUser } = useUser();
   const router = useRouter();
 
   useEffect(() => {
-    getMe();
-  }, [getMe]);
+    if (isAuthenticated && !currentUser) {
+      fetchCurrentUser();
+    }
+  }, [isAuthenticated, currentUser, fetchCurrentUser]);
 
   const features = [
     {
@@ -132,16 +136,18 @@ export default function LandingPage() {
                   <DropdownMenuTrigger asChild>
                     <Button variant='ghost' className='relative h-8 w-8 rounded-full'>
                       <Avatar className='h-8 w-8'>
-                        <AvatarImage src={user?.avatar} alt={user?.fullName} />
-                        <AvatarFallback>{user?.fullName?.charAt(0)}</AvatarFallback>
+                        <AvatarImage src={currentUser?.avatar} alt={currentUser?.fullName} />
+                        <AvatarFallback>{currentUser?.fullName?.charAt(0)}</AvatarFallback>
                       </Avatar>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className='bg-background w-56' align='end' forceMount>
                     <DropdownMenuLabel className='font-normal'>
                       <div className='flex flex-col space-y-1'>
-                        <p className='text-sm leading-none font-medium'>{user?.fullName}</p>
-                        <p className='text-muted-foreground text-xs leading-none'>{user?.email}</p>
+                        <p className='text-sm leading-none font-medium'>{currentUser?.fullName}</p>
+                        <p className='text-muted-foreground text-xs leading-none'>
+                          {currentUser?.email}
+                        </p>
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />

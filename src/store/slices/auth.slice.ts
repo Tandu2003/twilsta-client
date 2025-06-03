@@ -2,10 +2,9 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
 import authService from '@/services/auth.service';
 
-import { User } from '@/types';
+import { getCurrentUser, resetUserState, setCurrentUser } from './user.slice';
 
 interface AuthState {
-  user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
@@ -13,46 +12,88 @@ interface AuthState {
 }
 
 const initialState: AuthState = {
-  user: null,
   isAuthenticated: false,
   isLoading: false,
   error: null,
   initialLoad: false,
 };
 
-export const getMe = createAsyncThunk('auth/getMe', async () => {
-  const response = await authService.getMe();
-  return response;
-});
-
 export const login = createAsyncThunk(
   'auth/login',
-  async (credentials: { emailOrUsername: string; password: string }) => {
-    const response = await authService.login(credentials);
-    return response;
+  async (
+    credentials: { emailOrUsername: string; password: string },
+    { dispatch, rejectWithValue },
+  ) => {
+    try {
+      const response = await authService.login(credentials);
+
+      if (response.success) {
+        dispatch(setCurrentUser(response.data));
+      }
+
+      return response;
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data?.message || error?.message || 'Login failed');
+    }
   },
 );
 
 export const register = createAsyncThunk(
   'auth/register',
-  async (data: { fullName: string; username: string; email: string; password: string }) => {
-    const response = await authService.register(data);
-    return response;
+  async (
+    data: { fullName: string; username: string; email: string; password: string },
+    { dispatch, rejectWithValue },
+  ) => {
+    try {
+      const response = await authService.register(data);
+
+      if (response.success) {
+        dispatch(setCurrentUser(response.data));
+      }
+
+      return response;
+    } catch (error: any) {
+      return rejectWithValue(
+        error?.response?.data?.message || error?.message || 'Registration failed',
+      );
+    }
   },
 );
 
-export const logout = createAsyncThunk('auth/logout', async () => {
-  const response = await authService.logout();
-  return response;
+export const logout = createAsyncThunk('auth/logout', async (_, { dispatch, rejectWithValue }) => {
+  try {
+    const response = await authService.logout();
+
+    dispatch(resetUserState());
+
+    return response;
+  } catch (error: any) {
+    dispatch(resetUserState());
+    return rejectWithValue(error?.response?.data?.message || error?.message || 'Logout failed');
+  }
 });
 
+export const initializeAuth = createAsyncThunk(
+  'auth/initialize',
+  async (_, { dispatch, rejectWithValue }) => {
+    try {
+      const result = await dispatch(getCurrentUser());
+
+      if (getCurrentUser.fulfilled.match(result)) {
+        return { isAuthenticated: true };
+      } else {
+        return { isAuthenticated: false };
+      }
+    } catch (error: any) {
+      return rejectWithValue({ isAuthenticated: false });
+    }
+  },
+);
+
 const authSlice = createSlice({
-  name: 'auth-slice',
+  name: 'auth',
   initialState,
   reducers: {
-    setUser: (state, action) => {
-      state.user = action.payload;
-    },
     setIsAuthenticated: (state, action) => {
       state.isAuthenticated = action.payload;
     },
@@ -68,8 +109,7 @@ const authSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
-    resetState: (state) => {
-      state.user = null;
+    resetAuthState: (state) => {
       state.isAuthenticated = false;
       state.isLoading = false;
       state.error = null;
@@ -78,72 +118,85 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(getMe.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(getMe.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.user = action.payload.data || null;
-        state.isAuthenticated = true;
-        state.initialLoad = true;
-      })
-      .addCase(getMe.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.error.message || 'Failed to fetch user data';
-        state.initialLoad = true;
-      })
+
       .addCase(login.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(login.fulfilled, (state, action) => {
+      .addCase(login.fulfilled, (state) => {
         state.isLoading = false;
-        state.user = action.payload.data || null;
         state.isAuthenticated = true;
+        state.error = null;
       })
       .addCase(login.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.error.message || 'Login failed';
+        state.isAuthenticated = false;
+        state.error = action.payload as string;
       })
+
       .addCase(register.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(register.fulfilled, (state, action) => {
+      .addCase(register.fulfilled, (state) => {
         state.isLoading = false;
-        state.user = action.payload.data || null;
         state.isAuthenticated = true;
+        state.error = null;
       })
       .addCase(register.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.error.message || 'Registration failed';
+        state.isAuthenticated = false;
+        state.error = action.payload as string;
       })
+
       .addCase(logout.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
       .addCase(logout.fulfilled, (state) => {
-        state.user = null;
         state.isAuthenticated = false;
         state.error = null;
         state.isLoading = false;
       })
       .addCase(logout.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.error.message || 'Logout failed';
+        state.isAuthenticated = false;
+        state.error = action.payload as string;
+      })
+
+      .addCase(initializeAuth.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(initializeAuth.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isAuthenticated = action.payload.isAuthenticated;
+        state.initialLoad = true;
+        state.error = null;
+      })
+      .addCase(initializeAuth.rejected, (state) => {
+        state.isLoading = false;
+        state.isAuthenticated = false;
+        state.initialLoad = true;
+        state.error = null;
+      })
+
+      .addCase(getCurrentUser.fulfilled, (state) => {
+        state.isAuthenticated = true;
+      })
+      .addCase(getCurrentUser.rejected, (state) => {
+        state.isAuthenticated = false;
       });
   },
 });
 
 export const {
-  setUser,
   setIsAuthenticated,
   setIsLoading,
   setError,
   setInitialLoad,
   clearError,
-  resetState,
+  resetAuthState,
 } = authSlice.actions;
 
 export default authSlice.reducer;

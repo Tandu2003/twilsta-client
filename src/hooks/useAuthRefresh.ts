@@ -3,76 +3,101 @@ import { useCallback, useEffect } from 'react';
 
 import TokenManager from '@/lib/token-manager';
 
-import authService from '@/services/auth.service';
+import { logout as authLogout, setIsAuthenticated } from '@/store/slices/auth.slice';
+import { getCurrentUser, resetUserState } from '@/store/slices/user.slice';
+import { useAppDispatch, useAppSelector } from '@/store/store';
 
 export const useAuthRefresh = () => {
   const router = useRouter();
+  const dispatch = useAppDispatch();
+
+  const {
+    currentUser,
+    isLoading: isUserLoading,
+    initialLoad,
+  } = useAppSelector((state) => state.user);
+  const { isAuthenticated, isLoading: isAuthLoading } = useAppSelector((state) => state.auth);
 
   const checkAndRefreshToken = useCallback(async () => {
     try {
-      // Kiểm tra token hiện tại
-      const authCheck = await authService.checkAuth();
+      const result = await dispatch(getCurrentUser());
 
-      if (!authCheck.isValid) {
-        // Nếu token không hợp lệ, thử refresh
+      if (getCurrentUser.fulfilled.match(result)) {
+        dispatch(setIsAuthenticated(true));
+        return true;
+      } else {
         const refreshSuccess = await TokenManager.refreshToken();
 
-        if (!refreshSuccess) {
-          // Refresh thất bại, redirect về login
-          TokenManager.resetState();
-          router.push('/login');
-          return false;
+        if (refreshSuccess) {
+          const retryResult = await dispatch(getCurrentUser());
+          if (getCurrentUser.fulfilled.match(retryResult)) {
+            dispatch(setIsAuthenticated(true));
+            return true;
+          }
         }
-      }
 
-      return true;
+        TokenManager.resetState();
+        dispatch(resetUserState());
+        dispatch(setIsAuthenticated(false));
+        router.push('/login');
+        return false;
+      }
     } catch (error) {
       console.error('Auth check failed:', error);
 
-      // Nếu lỗi 401, thử refresh token
-      if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as any;
-        if (axiosError?.response?.status === 401) {
-          const refreshSuccess = await TokenManager.refreshToken();
-          if (!refreshSuccess) {
-            router.push('/login');
-            return false;
-          }
+      const refreshSuccess = await TokenManager.refreshToken();
+      if (refreshSuccess) {
+        const retryResult = await dispatch(getCurrentUser());
+        if (getCurrentUser.fulfilled.match(retryResult)) {
+          dispatch(setIsAuthenticated(true));
           return true;
         }
       }
 
+      TokenManager.resetState();
+      dispatch(resetUserState());
+      dispatch(setIsAuthenticated(false));
+      router.push('/login');
       return false;
     }
-  }, [router]);
+  }, [dispatch, router]);
 
   const logout = useCallback(async () => {
     try {
-      await authService.logout();
+      await dispatch(authLogout());
     } catch (error) {
       console.error('Logout error:', error);
+
+      dispatch(resetUserState());
+      dispatch(setIsAuthenticated(false));
     } finally {
       TokenManager.resetState();
       router.push('/login');
     }
-  }, [router]);
+  }, [dispatch, router]);
 
-  // Auto check token validity on mount and periodically
   useEffect(() => {
+    if (!initialLoad) {
+      checkAndRefreshToken();
+      return;
+    }
+
     const interval = setInterval(
       () => {
-        checkAndRefreshToken();
+        if (isAuthenticated) {
+          checkAndRefreshToken();
+        }
       },
       5 * 60 * 1000,
-    ); // Check every 5 minutes
-
-    // Initial check
-    checkAndRefreshToken();
+    );
 
     return () => clearInterval(interval);
-  }, [checkAndRefreshToken]);
+  }, [checkAndRefreshToken, initialLoad, isAuthenticated]);
 
   return {
+    currentUser,
+    isAuthenticated,
+    isLoading: isUserLoading || isAuthLoading,
     checkAndRefreshToken,
     logout,
     isRefreshing: TokenManager.isCurrentlyRefreshing(),
