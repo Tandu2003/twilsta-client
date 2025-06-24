@@ -22,7 +22,6 @@ export default function VerifyEmailPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
-  const email = searchParams.get('email');
 
   const [isLoading, setIsLoading] = useState(true);
   const [isVerified, setIsVerified] = useState(false);
@@ -163,13 +162,6 @@ export default function VerifyEmailPage() {
               <li>• Your email was already verified</li>
             </ul>
           </div>
-
-          {email && (
-            <div className='p-4 bg-accent/10 rounded-lg border border-accent/20'>
-              <p className='text-sm text-muted-foreground mb-2'>Need a new verification email?</p>
-              <p className='font-medium text-foreground text-sm break-all'>{email}</p>
-            </div>
-          )}
         </div>
 
         <div className='space-y-3'>
@@ -178,9 +170,7 @@ export default function VerifyEmailPage() {
             asChild
             className='w-full bg-primary hover:bg-primary/90 text-primary-foreground border-primary'
           >
-            <Link
-              href={`/resend-verification${email ? `?email=${encodeURIComponent(email)}` : ''}`}
-            >
+            <Link href='/resend-verification'>
               <Mail className='mr-2 h-4 w-4' />
               Resend Verification Email
             </Link>
