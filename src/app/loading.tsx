@@ -1,4 +1,5 @@
-import { Loader2, Sparkles } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import TwilstaLogo from '@/components/ui/twilsta-logo';
 
 export default function Loading() {
   return (
@@ -13,16 +14,8 @@ export default function Loading() {
 
       {/* Main loading content */}
       <div className='relative z-10 flex flex-col items-center space-y-8'>
-        {/* Logo or brand area */}
-        <div className='flex items-center space-x-2'>
-          <div className='relative'>
-            <Sparkles className='w-8 h-8 text-primary animate-pulse' />
-            <div className='absolute inset-0 w-8 h-8 bg-primary/20 rounded-full animate-ping'></div>
-          </div>
-          <h1 className='text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent'>
-            Twilsta
-          </h1>
-        </div>
+        {/* Logo using TwilstaLogo component */}
+        <TwilstaLogo size={48} />
 
         {/* Animated loading spinner */}
         <div className='relative'>
@@ -42,7 +35,7 @@ export default function Loading() {
 
         {/* Loading text with typing animation */}
         <div className='text-center space-y-2'>
-          <p className='text-lg font-medium text-foreground animate-pulse'>Đang tải...</p>
+          <p className='text-lg font-medium text-foreground animate-pulse'>Loading...</p>
           <div className='flex items-center justify-center space-x-1'>
             <div className='w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]'></div>
             <div className='w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]'></div>
