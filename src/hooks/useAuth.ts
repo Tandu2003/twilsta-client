@@ -76,25 +76,16 @@ export function useAuth() {
     }
   }, [accessToken]);
 
-  // Auto refresh if token is expiring
-  useEffect(() => {
-    if (!isAuthenticated || !accessToken) return;
-
-    const checkAndRefresh = async () => {
-      if (isTokenExpiring()) {
-        console.log('Token is expiring soon, refreshing...');
-        await refreshToken();
-      }
-    };
-
-    // Check every 2 minutes
-    const interval = setInterval(checkAndRefresh, 2 * 60 * 1000);
-
-    // Check immediately
-    checkAndRefresh();
-
-    return () => clearInterval(interval);
-  }, [isAuthenticated, accessToken, isTokenExpiring, refreshToken]);
+  // Manual logout function
+  const logoutUser = useCallback(async () => {
+    try {
+      await authService.logout();
+    } catch (error) {
+      console.warn('Logout error:', error);
+      // Still clear local state even if server call fails
+      dispatch(logout());
+    }
+  }, [dispatch]);
 
   return {
     user,
@@ -103,6 +94,6 @@ export function useAuth() {
     isTokenExpiring: isTokenExpiring(),
     refreshToken,
     handleAuthError,
-    logout: () => dispatch(logout()),
+    logout: logoutUser,
   };
 }

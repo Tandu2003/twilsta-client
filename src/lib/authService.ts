@@ -58,17 +58,13 @@ export const authService = {
       }
       return res.data;
     } catch (error: any) {
-      // Refresh failed - logout user
       store.dispatch(logoutAction());
-      if (typeof window !== 'undefined') {
-        window.location.href = '/login';
-      }
       throw error;
     }
   },
   async getMe() {
     // API interceptor sẽ tự động handle refresh nếu cần
-    const res = await api.get<ApiResponse<User>>('/auth/me');
+    const res = await api.get<ApiResponse<{ user: User }>>('/auth/me');
     return res.data;
   },
   async resendVerification(email: string) {

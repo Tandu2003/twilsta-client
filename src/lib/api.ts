@@ -29,14 +29,52 @@ const processQueue = (error: any, token: string | null = null) => {
   failedQueue = [];
 };
 
+// Helper function to check if token is expiring soon
+const isTokenExpiringSoon = (token: string): boolean => {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const currentTime = Date.now() / 1000;
+    const timeUntilExpiry = payload.exp - currentTime;
+    return timeUntilExpiry < 60; // 1 minute
+  } catch (error) {
+    return false;
+  }
+};
+
 // Interceptor để tự động thêm accessToken vào header nếu có
-api.interceptors.request.use((config) => {
+api.interceptors.request.use(async (config) => {
   const state = store.getState();
   const token = state.auth.accessToken;
+
   if (token) {
-    config.headers = config.headers || {};
-    config.headers['Authorization'] = `Bearer ${token}`;
+    // Check if token is expiring soon and proactively refresh
+    if (isTokenExpiringSoon(token) && !isRefreshing) {
+      try {
+        isRefreshing = true;
+        const response = await api.post<ApiResponse<{ accessToken: string }>>('/auth/refresh');
+
+        if (response.data.success && response.data.data) {
+          store.dispatch(
+            setCredentials({
+              user: state.auth.user!,
+              accessToken: response.data.data.accessToken,
+            }),
+          );
+          config.headers = config.headers || {};
+          config.headers['Authorization'] = `Bearer ${response.data.data.accessToken}`;
+        }
+      } catch (error) {
+        // Refresh failed - will be handled by response interceptor
+        console.warn('Proactive refresh failed:', error);
+      } finally {
+        isRefreshing = false;
+      }
+    } else {
+      config.headers = config.headers || {};
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
   }
+
   return config;
 });
 
