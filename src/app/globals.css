@@ -46,109 +46,93 @@
 :root {
   --radius: 0.65rem;
 
-  /* ✅ BLUE/INDIGO THEME - Matching landing page colors */
-  --background: oklch(0.99 0.005 240); /* Very light blue-tinted white */
-  --foreground: oklch(0.145 0.02 240); /* Dark blue-gray text */
+  --background: oklch(0.985 0.03 250); /* Breezy Blue */
+  --foreground: oklch(0.2 0.02 250); /* Text đậm hơn */
 
-  --card: oklch(1 0 0); /* Pure white for cards */
-  --card-foreground: oklch(0.145 0.02 240);
+  --card: oklch(1 0.02 250);
+  --card-foreground: oklch(0.18 0.02 250);
 
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0.02 240);
+  --popover: oklch(0.97 0.02 250);
+  --popover-foreground: oklch(0.2 0.02 250);
 
-  /* Primary = Blue theme color */
-  --primary: oklch(0.55 0.15 250); /* Blue-600 equivalent */
-  --primary-foreground: oklch(0.99 0 0); /* White text */
+  --primary: oklch(0.45 0.12 250); /* Mid blue */
+  --primary-foreground: oklch(0.985 0.03 250);
 
-  /* Secondary = Light blue */
-  --secondary: oklch(0.96 0.02 240); /* Blue-50 equivalent */
-  --secondary-foreground: oklch(0.35 0.1 240); /* Darker blue text */
+  --secondary: oklch(0.85 0.05 250);
+  --secondary-foreground: oklch(0.2 0.02 250);
 
-  /* Muted = Light blue-gray */
-  --muted: oklch(0.95 0.01 240); /* Subtle blue tint */
-  --muted-foreground: oklch(0.5 0.05 240); /* Medium blue-gray */
+  --muted: oklch(0.9 0.02 250);
+  --muted-foreground: oklch(0.4 0.03 250);
 
-  /* Accent = Indigo */
-  --accent: oklch(0.94 0.03 260); /* Indigo-100 equivalent */
-  --accent-foreground: oklch(0.4 0.12 260); /* Indigo text */
+  --accent: oklch(0.92 0.05 250);
+  --accent-foreground: oklch(0.2 0.02 250);
 
-  --destructive: oklch(0.577 0.245 27.325); /* Keep red for errors */
+  --destructive: oklch(0.6 0.25 25); /* đỏ */
 
-  /* Borders and inputs - subtle blue tint */
-  --border: oklch(0.9 0.01 240); /* Light blue-gray border */
-  --input: oklch(0.98 0.005 240); /* Very light blue input bg */
-  --ring: oklch(0.55 0.15 250); /* Blue focus ring */
+  --border: oklch(0.88 0.02 250);
+  --input: oklch(0.88 0.02 250);
+  --ring: oklch(0.5 0.04 250);
 
-  /* Charts - Blue/indigo spectrum */
-  --chart-1: oklch(0.55 0.15 250); /* Blue */
-  --chart-2: oklch(0.5 0.18 260); /* Indigo */
-  --chart-3: oklch(0.45 0.12 270); /* Purple-blue */
-  --chart-4: oklch(0.6 0.12 240); /* Light blue */
-  --chart-5: oklch(0.65 0.08 280); /* Light purple */
+  /* Charts: biển – trời – highlight summer */
+  --chart-1: oklch(0.75 0.2 250);
+  --chart-2: oklch(0.55 0.15 250);
+  --chart-3: oklch(0.4 0.08 250);
+  --chart-4: oklch(0.85 0.15 210); /* sáng hơn */
+  --chart-5: oklch(0.92 0.2 90); /* ánh vàng nhạt */
 
-  --radius: 0.625rem;
-
-  /* Sidebar - matching theme */
-  --sidebar: oklch(0.98 0.01 240);
-  --sidebar-foreground: oklch(0.145 0.02 240);
-  --sidebar-primary: oklch(0.55 0.15 250);
-  --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.94 0.03 260);
-  --sidebar-accent-foreground: oklch(0.4 0.12 260);
-  --sidebar-border: oklch(0.9 0.01 240);
-  --sidebar-ring: oklch(0.55 0.15 250);
+  /* Sidebar */
+  --sidebar: oklch(0.975 0.02 250);
+  --sidebar-foreground: oklch(0.2 0.02 250);
+  --sidebar-primary: oklch(0.45 0.12 250);
+  --sidebar-primary-foreground: oklch(0.985 0.03 250);
+  --sidebar-accent: oklch(0.88 0.05 250);
+  --sidebar-accent-foreground: oklch(0.2 0.02 250);
+  --sidebar-border: oklch(0.88 0.02 250);
+  --sidebar-ring: oklch(0.5 0.04 250);
 }
 
 .dark {
-  /* ✅ DARK BLUE/INDIGO THEME */
-  --background: oklch(0.08 0.02 240); /* Very dark blue-gray */
-  --foreground: oklch(0.95 0.01 240); /* Light blue-tinted white */
+  --background: oklch(0.2 0.03 250); /* nền navy đậm */
+  --foreground: oklch(0.985 0.03 250);
 
-  --card: oklch(0.12 0.02 240); /* Dark blue-gray card */
-  --card-foreground: oklch(0.95 0.01 240);
+  --card: oklch(0.25 0.04 250);
+  --card-foreground: oklch(0.985 0.03 250);
 
-  --popover: oklch(0.12 0.02 240);
-  --popover-foreground: oklch(0.95 0.01 240);
+  --popover: oklch(0.25 0.04 250);
+  --popover-foreground: oklch(0.985 0.03 250);
 
-  /* Primary = Bright blue for dark mode */
-  --primary: oklch(0.7 0.18 250); /* Brighter blue for contrast */
-  --primary-foreground: oklch(0.08 0.02 240); /* Dark background text */
+  --primary: oklch(0.85 0.05 250);
+  --primary-foreground: oklch(0.2 0.03 250);
 
-  /* Secondary = Dark blue */
-  --secondary: oklch(0.18 0.03 240); /* Dark blue-gray */
-  --secondary-foreground: oklch(0.85 0.02 240); /* Light blue text */
+  --secondary: oklch(0.3 0.04 250);
+  --secondary-foreground: oklch(0.985 0.03 250);
 
-  /* Muted = Medium dark blue */
-  --muted: oklch(0.16 0.02 240);
-  --muted-foreground: oklch(0.65 0.03 240); /* Medium light blue-gray */
+  --muted: oklch(0.3 0.03 250);
+  --muted-foreground: oklch(0.75 0.04 250);
 
-  /* Accent = Dark indigo */
-  --accent: oklch(0.2 0.05 260); /* Dark indigo */
-  --accent-foreground: oklch(0.8 0.05 260); /* Light indigo text */
+  --accent: oklch(0.3 0.04 250);
+  --accent-foreground: oklch(0.985 0.03 250);
 
-  --destructive: oklch(0.704 0.191 22.216); /* Adjusted red for dark mode */
+  --destructive: oklch(0.65 0.25 25);
 
-  /* Dark borders and inputs */
-  --border: oklch(0.25 0.02 240); /* Dark blue border */
-  --input: oklch(0.14 0.02 240); /* Dark blue input */
-  --ring: oklch(0.7 0.18 250); /* Bright blue focus ring */
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.6 0.04 250);
 
-  /* Dark mode charts - brighter blues */
-  --chart-1: oklch(0.65 0.18 250); /* Bright blue */
-  --chart-2: oklch(0.6 0.2 260); /* Bright indigo */
-  --chart-3: oklch(0.7 0.15 270); /* Bright purple-blue */
-  --chart-4: oklch(0.75 0.12 240); /* Light blue */
-  --chart-5: oklch(0.8 0.1 280); /* Light purple */
+  --chart-1: oklch(0.55 0.2 250);
+  --chart-2: oklch(0.65 0.15 250);
+  --chart-3: oklch(0.75 0.18 250);
+  --chart-4: oklch(0.55 0.25 290);
+  --chart-5: oklch(0.6 0.22 30);
 
-  /* Dark sidebar */
-  --sidebar: oklch(0.1 0.02 240);
-  --sidebar-foreground: oklch(0.95 0.01 240);
-  --sidebar-primary: oklch(0.65 0.18 250);
-  --sidebar-primary-foreground: oklch(0.95 0.01 240);
-  --sidebar-accent: oklch(0.2 0.05 260);
-  --sidebar-accent-foreground: oklch(0.8 0.05 260);
-  --sidebar-border: oklch(0.25 0.02 240);
-  --sidebar-ring: oklch(0.7 0.18 250);
+  --sidebar: oklch(0.25 0.04 250);
+  --sidebar-foreground: oklch(0.985 0.03 250);
+  --sidebar-primary: oklch(0.55 0.2 250);
+  --sidebar-primary-foreground: oklch(0.985 0.03 250);
+  --sidebar-accent: oklch(0.3 0.04 250);
+  --sidebar-accent-foreground: oklch(0.985 0.03 250);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.6 0.04 250);
 }
 
 @layer base {
