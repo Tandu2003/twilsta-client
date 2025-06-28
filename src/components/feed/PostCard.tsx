@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -35,24 +35,43 @@ interface PostCardProps {
 
 export function PostCard({ post, onUpdate, onDelete }: PostCardProps) {
   const { user } = useAuth();
-  const [isLiked, setIsLiked] = useState(false); // TODO: Get from API
-  const [likeCount, setLikeCount] = useState(post.likesCount);
+  const [isLiked, setIsLiked] = useState(false);
   const [isLiking, setIsLiking] = useState(false);
+
+  // Check like status when component mounts
+  useEffect(() => {
+    if (user && post.id) {
+      checkLikeStatus();
+    }
+  }, [user, post.id]);
+
+  const checkLikeStatus = async () => {
+    try {
+      const response = await postService.checkLikeStatus(post.id);
+      if (response.data?.liked !== undefined) {
+        setIsLiked(response.data.liked);
+      }
+    } catch (error) {
+      console.error('Error checking like status:', error);
+    }
+  };
 
   const handleLike = async () => {
     if (!user) return;
 
     setIsLiking(true);
     try {
-      await postService.toggleLike(post.id);
-      setIsLiked(!isLiked);
-      setLikeCount((prev) => (isLiked ? prev - 1 : prev + 1));
+      const response = await postService.toggleLike(post.id);
+      if (response.data) {
+        const newLikedState = !isLiked;
+        setIsLiked(newLikedState);
 
-      // Update the post in parent component
-      onUpdate({
-        ...post,
-        likesCount: isLiked ? post.likesCount - 1 : post.likesCount + 1,
-      });
+        // Update the post in parent component with server response
+        onUpdate({
+          ...post,
+          likesCount: response.data.likeCount,
+        });
+      }
     } catch (error) {
       console.error('Error toggling like:', error);
     } finally {
@@ -201,7 +220,7 @@ export function PostCard({ post, onUpdate, onDelete }: PostCardProps) {
               }`}
             >
               <Heart className={`h-4 w-4 ${isLiked ? 'fill-current' : ''}`} />
-              <span>{likeCount}</span>
+              <span>{post.likesCount}</span>
             </Button>
 
             <Link href={`/post/${post.id}`}>

@@ -32,6 +32,12 @@ export const postService = {
     const res = await api.post<ApiResponse<Post>>('/posts', data);
     return res.data;
   },
+  async createWithMedia(formData: FormData) {
+    const res = await api.post<ApiResponse<Post>>('/posts/media', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return res.data;
+  },
   async update(id: string, data: UpdatePostRequest) {
     const res = await api.put<ApiResponse<Post>>(`/posts/${id}`, data);
     return res.data;
@@ -41,7 +47,13 @@ export const postService = {
     return res.data;
   },
   async toggleLike(id: string) {
-    const res = await api.post<ApiResponse<null>>(`/posts/${id}/like`);
+    const res = await api.post<ApiResponse<{ postId: string; liked: boolean; likeCount: number }>>(
+      `/posts/${id}/like`,
+    );
+    return res.data;
+  },
+  async checkLikeStatus(id: string) {
+    const res = await api.get<ApiResponse<{ liked: boolean }>>(`/posts/${id}/like-status`);
     return res.data;
   },
   async addMedia(id: string, files: File[]) {

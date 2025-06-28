@@ -28,21 +28,32 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
 
     setIsSubmitting(true);
     try {
-      const postData = {
-        content,
-        type: 'TEXT' as const,
-      };
+      let response;
 
-      const response = await postService.create(postData);
+      if (mediaFiles.length > 0) {
+        // Create post with media
+        const formData = new FormData();
+        formData.append('content', content);
+
+        mediaFiles.forEach((file) => {
+          formData.append('media', file);
+        });
+
+        response = await postService.createWithMedia(formData);
+      } else {
+        // Create text-only post
+        const postData = {
+          content,
+          type: 'TEXT' as const,
+        };
+
+        response = await postService.create(postData);
+      }
+
       const newPost = response.data;
 
       if (!newPost) {
         throw new Error('Failed to create post');
-      }
-
-      // Add media if any
-      if (mediaFiles.length > 0) {
-        await postService.addMedia(newPost.id, mediaFiles);
       }
 
       onPostCreated(newPost);

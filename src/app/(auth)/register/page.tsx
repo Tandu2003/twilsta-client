@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
-import { Eye, EyeOff, Mail, Lock, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, Loader2, User } from 'lucide-react';
 import { authService } from '@/lib/authService';
 import type { RegisterRequest } from '@/types/dto';
 import { toast } from 'sonner';
@@ -25,6 +25,7 @@ export default function RegisterPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
     username: '',
+    displayName: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -53,6 +54,7 @@ export default function RegisterPage() {
     try {
       const registerData: RegisterRequest = {
         username: formData.username,
+        displayName: formData.displayName,
         email: formData.email,
         password: formData.password,
       };
@@ -108,9 +110,28 @@ export default function RegisterPage() {
               <Input
                 id='username'
                 type='text'
-                placeholder='your_username'
+                placeholder='Your Username'
                 value={formData.username}
                 onChange={handleInputChange('username')}
+                className='pl-8 bg-input border-border focus:ring-ring'
+                required
+              />
+            </div>
+          </div>
+
+          {/* Display Name Field */}
+          <div className='space-y-2'>
+            <Label htmlFor='displayName' className='text-foreground'>
+              Display Name
+            </Label>
+            <div className='relative'>
+              <User className='absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4' />
+              <Input
+                id='displayName'
+                type='text'
+                placeholder='Your Display Name'
+                value={formData.displayName}
+                onChange={handleInputChange('displayName')}
                 className='pl-8 bg-input border-border focus:ring-ring'
                 required
               />

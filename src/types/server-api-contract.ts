@@ -168,6 +168,7 @@ export interface LoginResponse {
 }
 export interface RegisterRequest {
   username: string;
+  displayName: string;
   email: string;
   password: string;
 }

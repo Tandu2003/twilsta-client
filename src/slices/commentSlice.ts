@@ -3,14 +3,12 @@ import type { Comment } from '@/types';
 
 interface CommentState {
   comments: Comment[];
-  replies: Comment[];
   loading: boolean;
   error: string | null;
 }
 
 const initialState: CommentState = {
   comments: [],
-  replies: [],
   loading: false,
   error: null,
 };
@@ -21,9 +19,6 @@ const commentSlice = createSlice({
   reducers: {
     setComments(state, action: PayloadAction<Comment[]>) {
       state.comments = action.payload;
-    },
-    setReplies(state, action: PayloadAction<Comment[]>) {
-      state.replies = action.payload;
     },
     setLoading(state, action: PayloadAction<boolean>) {
       state.loading = action.payload;
@@ -37,6 +32,6 @@ const commentSlice = createSlice({
   },
 });
 
-export const { setComments, setReplies, setLoading, setError, resetCommentState } =
-  commentSlice.actions;
+export const { setComments, setLoading, setError, resetCommentState } = commentSlice.actions;
+
 export default commentSlice.reducer;
